@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: uassist-summary
+  name: u-assist-promise
   labels:
-    {{- include "uassist-summary.labels" . | nindent 4 }}
+    {{- include "u-assist-promise.labels" . | nindent 4 }}
     tags.datadoghq.com/env: {{ .Values.datadog.env }}
     tags.datadoghq.com/service: {{ .Values.datadog.service }}
 spec:
@@ -14,14 +14,14 @@ spec:
   {{ end }}
   selector:
     matchLabels:
-      {{- include "uassist-summary.selectorLabels" . | nindent 6 }}
+      {{- include "u-assist-promise.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       annotations:
         prometheus.io/scrape: 'true'
         prometheus.io/path: '/actuator/prometheus'
       labels:
-        {{- include "uassist-summary.selectorLabels" . | nindent 8 }}
+        {{- include "u-assist-promise.selectorLabels" . | nindent 8 }}
         tags.datadoghq.com/env: {{ .Values.datadog.env }}
         tags.datadoghq.com/service: {{ .Values.datadog.service }}
     spec:
@@ -33,7 +33,7 @@ spec:
         - name: logs-volume
           emptyDir: {}
       containers:
-        - name: uassist-summary
+        - name: u-assist-promise
           image: "{{ .Values.image.id }}"
           volumeMounts:
             - mountPath: "{{ .Values.log.path }}"
@@ -70,12 +70,12 @@ spec:
             - name: REDIS_CLUSTER
               valueFrom:
                 secretKeyRef:
-                  name: elastic-credential-summary
+                  name: elastic-credential-promise
                   key: cluster
             - name: REDIS_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: elastic-credential-summary
+                  name: elastic-credential-promise
                   key: secret
             - name: REDIS_CLUSTER_MAX_REDIRECTS
               value: "{{ .Values.redis.maxRedirects }}"

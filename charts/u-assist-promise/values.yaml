@@ -1,6 +1,6 @@
 image:
   # full image ID
-  id: registry.uniphore.com/uniphore/uassist-summary:v-a8da2d888d
+  id: registry.uniphore.com/uniphore/u-assist-promise:v-a8da2d888d
 version: 2.4.1.1
   # MEMORY CONFIG
 java:
@@ -10,7 +10,7 @@ java:
 log:
   apiLevel: WARN
   rootLevel: WARN
-  path: /var/log/uniphore/uassist-summary/
+  path: /var/log/uniphore/u-assist-promise/
 
 idp: auth0 # uassist helmrelease-value = '{{ .Values.idp }}'
 auth0:
@@ -19,7 +19,7 @@ auth0:
 # DATADOG CONFIG
 datadog:
   env: "" # uassist helmrelease-value = '{{ .Values.datadog.env }}'
-  service: "uassist-summary"
+  service: "u-assist-promise"
 
 # LINUX SHARED LIBRARY
 ldLibPath: /lib64
@@ -56,11 +56,11 @@ redis:
   timeout: 20000
   cacheTimeToLive: "3600000"
 
-replicaCount: 1 # uassist helmrelease-value = '{{ .Values.uassist-summary.replicaCount }}'
+replicaCount: 1 # uassist helmrelease-value = '{{ .Values.u-assist-promise.replicaCount }}'
 autoscaling:
-  enabled: false # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.enabled }}'
-  minReplicas: 1 # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.minReplicas }}'
-  maxReplicas: 3 # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.maxReplicas }}'
+  enabled: false # uassist helmrelease-value = '{{ .Values.u-assist-promise.autoscaling.enabled }}'
+  minReplicas: 1 # uassist helmrelease-value = '{{ .Values.u-assist-promise.autoscaling.minReplicas }}'
+  maxReplicas: 3 # uassist helmrelease-value = '{{ .Values.u-assist-promise.autoscaling.maxReplicas }}'
   #targetMemoryUtilizationPercentage: 50
   targetCPUUtilizationPercentage: 80
 
