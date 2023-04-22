@@ -1,0 +1,51 @@
+<configuration debug="true" scan="true">
+
+    <property name="LOGGING_LEVEL" value="${APP_LOGGING_LEVEL:-INFO}"/>
+    <property name="ROOT_LOGGING_LEVEL" value="${ROOT_LOGGING_LEVEL:-INFO}"/>
+    <property name="LOGGING_FILE_PATH" value="/var/log/uniphore/uassist/u-assist-promise"/>
+    <property name="LOGGING_MAX_HISTORY" value="${LOGGING_MAX_HISTORY:-30}"/>
+    <property name="LOGGING_TOTAL_SIZE_CAP" value="${LOGGING_TOTAL_SIZE_CAP:-100MB}"/>
+    <property name="LOG_FILE" value="u-assist-promise"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <pattern>
+                    <pattern>
+                        {"timestamp":"%d{yyyy-MM-dd' 'HH:mm:ss.SSS}","log_level":"%p","pid":"${PID:- }","thread":"%t","debug_file":"%-40.40logger{39}","message":"%m"}%n
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+    </appender>
+
+    <appender name="ROLLING_JSON_FILE_APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGGING_FILE_PATH}/${LOG_FILE}.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <pattern>
+                    <pattern>
+                        {"timestamp":"%d{yyyy-MM-dd' 'HH:mm:ss.SSS}","log_level":"%p","pid":"${PID:- }","thread":"%t","debug_file":"%-40.40logger{39}","message":"%m"}%n
+                    </pattern>
+                </pattern>
+            </providers>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGGING_FILE_PATH}/${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz
+            </fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${LOGGING_TOTAL_SIZE_CAP}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>${LOGGING_MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+    </appender>
+
+    <logger name="com.uniphore" level="${LOGGING_LEVEL}"/>
+    <logger name="org.springframework" level="${ROOT_LOGGING_LEVEL}"/>
+
+    <root level="${ROOT_LOGGING_LEVEL}">
+        <appender-ref ref="ROLLING_JSON_FILE_APPENDER"/>
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

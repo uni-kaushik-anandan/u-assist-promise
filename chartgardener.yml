@@ -1,0 +1,25 @@
+---
+base:
+  release: false
+  release-strategy: 'patch'
+  log:
+    level: DEBUG
+app:
+  default_name: "u-assist-promise"
+  default_description: 'Deployment of u-assist-promise service'
+  default_chart_version: '0.1.0'
+  default_app_version: '0.1.0'
+repos:
+  internal_helm_repo:
+    url: "https://charts.uniphoredev.com"
+    username: "admin"
+    password: "WEN4dnVnQ0xvcUFHbENOVw=="
+  helm_repos:
+    'https://charts.uniphoredev.com': 'uniphore-charts'
+chart:
+  local_source_dir: "./charts"
+  imported_source_dir: ""
+  validator_log_diff: true
+  autoincrement_version: true
+  autoincrement_strategy: 'prerelease'
+  force_push: false

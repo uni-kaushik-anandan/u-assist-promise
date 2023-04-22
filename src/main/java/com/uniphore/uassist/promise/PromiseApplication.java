@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class UAssistPromiseApplication {
+public class PromiseApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(UAssistPromiseApplication.class, args);
-	}
+  public static void main(String[] args) {
+    SpringApplication.run(PromiseApplication.class, args);
+  }
 
 }

@@ -1,0 +1,122 @@
+kind: Project
+name: u-assist-promise
+sources:
+  - name: platform-thirdparty
+    repositoryUrl: https://gitlab-ci-token:${local.env.GITLAB_PUSH_TOKEN}@gitlab.com/uniphore/cloud/infra/platform-thirdparty-modules.git#main
+modules:
+  include:
+    # thirdparty services
+    - garden/platform-secrets
+    - garden/postgresql
+    - garden/postgresql-init
+    - garden/zookeeper
+    - garden/kafka
+    - garden/kafka-provisioning
+    - garden/mongodb
+    - garden/redis
+    - garden/efs-mount
+   # u-assist-promise service
+    - charts/u-assist-promise
+    - u-assist-promise.garden.yml
+
+  exclude:
+    - garden/kafdrop
+
+variables:
+  host: ""
+  remoteModulePrefixCloud: ${local.env.REMOTE_MODULE_PREFIX_CLOUD || "ssh://git"}
+  remoteModulePrefixPE: ${local.env.REMOTE_MODULE_PREFIX_PE || "ssh://git"}
+  uassistPromiseImage: registry.uniphore.com/uniphore/u-assist-promise:23.4.0.0.22
+  urlScheme: https
+  useKafkaFromSecrets: false
+  kafka:
+    consumerConcurrency: 1
+  datadog:
+    env: ""
+  nfs:
+    server: fs-005257867924eddf5.efs.us-east-2.amazonaws.com
+  java:
+    opts: -Xms1024m -Xmx4096m # -Xms128m -Xmx1024m
+  log:
+    apiLevel: WARN
+    rootLevel: WARN
+  standardSolutionPacks:
+    application: "uassist"
+    name: ""
+    version: ""
+  ccr:
+    targetImage: dev
+    imagePullSecrets: uniphore-secret
+  useElasticCacheFromSecrets: false
+
+environments:
+  - name: local
+    defaultNamespace: default
+    variables:
+      urlScheme: http
+      kubernetesProvider: local-kubernetes
+      datadog:
+        env: "local"
+        tls:
+          enabled: false
+
+  - name: dev
+    defaultNamespace: ${replace(local.usernameLowerCase,'.','-')}
+    variables:
+      kubernetesProvider: kubernetes
+      datadog:
+        env: "dev-${replace(local.usernameLowerCase,'.','-')}"
+
+  - name: build
+    defaultNamespace: build
+    variables:
+      kubernetesProvider: kubernetes
+      ccr:
+        targetImage: app
+      datadog:
+        env: build
+
+providers:
+  - name: jib
+  - name: local-kubernetes
+    environments:
+      - local
+    setupIngressController: kong
+    defaultHostname: api.localhost
+    namespace: ${environment.namespace}
+
+  - name: kubernetes
+    environments:
+      - dev
+    context: arn:aws:eks:us-east-2:346163573116:cluster/uniphore-dev-us-eks-platform
+    defaultHostname: us.cloud.uniphoredev.com
+    namespace:
+      name: ${environment.namespace}
+      annotations:
+        updateTimestamp: ${slice(datetime.now,0,19)}Z
+        lastModifiedBy: ${replace(local.usernameLowerCase,'.','-')}
+    buildMode: cluster-buildkit
+    imagePullSecrets:
+      - name: uniphore-secret
+        namespace: default
+    deploymentRegistry:
+      hostname: registry.uniphore.com
+      namespace: uniphore
+
+  - name: kubernetes
+    environments:
+      - build
+    context: arn:aws:eks:us-east-2:346163573116:cluster/uniphore-dev-us-eks-platform
+    defaultHostname: us.cloud.uniphoredev.com
+    namespace:
+      name: staging
+    buildMode: cluster-buildkit
+    imagePullSecrets:
+      - name: uniphore-secret
+        namespace: default
+    deploymentRegistry:
+      hostname: registry.uniphore.com
+      namespace: uniphore
+
+  - name: octant
+    environments: [local, dev]

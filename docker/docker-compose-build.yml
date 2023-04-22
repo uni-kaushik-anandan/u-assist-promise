@@ -1,0 +1,21 @@
+version: '3.8'
+
+# u-assist-promise
+x-u-assist-promise:
+  &default-u-assist-promise
+  container_name: u-assist-promise
+  build:
+    context: ''
+    dockerfile: u-assist-promise/Dockerfile
+  image: registry.uniphore.com/uniphore/u-assist-promise:latest
+
+# SERVICES
+services:
+
+  # u-assist-promise
+  u-assist-promise-latest:
+    *default-u-assist-promise
+
+  u-assist-promise-version:
+    << : *default-u-assist-promise
+    image: registry.uniphore.com/uniphore/u-assist-promise:$BUILD_VERSION

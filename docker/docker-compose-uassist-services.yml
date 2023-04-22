@@ -1,0 +1,61 @@
+version: '3.8'
+
+# HOSTS CONFIGURATION
+x-extra_hosts:
+  &default-extra_hosts
+  - platform-dev001.uniphore.com:172.31.14.232
+# VOLUMES CONFIGURATION
+x-volumes:
+  &default-volumes
+  - /mnt/efs/uniphore/uassist:/data1/uassist
+  - /var/log/uniphore:/var/log/uniphore
+
+# LOGGING CONFIGURATION
+x-logging:
+  &default-logging
+  # options:
+    # max-size: '12m'
+    # max-file: '5'
+  driver: json-file
+
+# RESTART POLICY
+x-restart-policy:
+  &default-restart-policy
+  condition: on-failure
+  delay: 5s
+  max_attempts: 3
+  window: 120s
+
+# DEPLOY POLICY
+x-deploy:
+  &default-deploy
+  mode: replicated
+  replicas: 1
+  #  endpoint_mode: dnsrr
+  placement:
+    max_replicas_per_node: 1
+    # constraints:
+  restart_policy: *default-restart-policy
+
+# SERVICES
+services:
+
+
+  # u-assist-promise
+  u-assist-promise:
+    # container_name: u-assist-promise
+    image: registry.uniphore.com/uniphore/u-assist-promise:latest
+    ports:
+    - 3381:3381
+    networks:
+    - uassist_network
+    volumes: *default-volumes
+    deploy: *default-deploy
+    logging: *default-logging
+    environment:
+    - JAVA_OPTS=-Xms128m -Xmx1024m
+    extra_hosts: *default-extra_hosts
+
+networks:
+  uassist_network:
+

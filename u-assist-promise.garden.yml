@@ -1,0 +1,14 @@
+kind: Module
+type: jib-container
+name: u-assist-promise-image
+disabled: false
+image: u-assist-promise
+include:
+  - ./pom.xml
+build:
+  projectType: maven
+  dockerBuild: ${environment.name == "local"}
+
+extraFlags:
+  - "-DskipTests=true"
+  - package
