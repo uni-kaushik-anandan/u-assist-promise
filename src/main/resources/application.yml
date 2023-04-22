@@ -1,0 +1,7 @@
+server:
+  port: 3381
+spring:
+  application:
+    name: promise
+  profiles:
+    #active:

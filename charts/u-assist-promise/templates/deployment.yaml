@@ -217,7 +217,7 @@ spec:
               value: "{{ .Values.keycloak.secretGateway }}"
           ports:
             - name: http
-              containerPort: 3380
+              containerPort: 3381
               protocol: TCP
           resources:
             requests:

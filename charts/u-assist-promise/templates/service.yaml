@@ -8,8 +8,8 @@ spec:
   type: ClusterIP
   ports:
     - name: http
-      port: 3380
-      targetPort: 3380
+      port: 3381
+      targetPort: 3381
       protocol: TCP
   selector:
     {{- include "u-assist-promise.selectorLabels" . | nindent 4 }}
