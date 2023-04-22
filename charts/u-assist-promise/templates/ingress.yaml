@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: u-assist-promise
+  annotations:
+      kubernetes.io/ingress.class: kong
+      konghq.com/strip-path: "true"
+      konghq.com/plugins: u-assist-promise-cors{{- if .Values.customClaim.restrict }}, uassist-jwt, uassist-jwt-claims-validate {{- end }}
+    {{- include "u-assist-promise.ingress.annotations" . | nindent 6 }}
+spec:
+  {{- include "u-assist-promise.ingress.tls" . | nindent 2 }}
+  rules:
+    {{- if .Values.ingress.host }}
+    - host: {{ .Values.ingress.host }}
+    {{- else }}
+    - host: {{ .Values.ingress.hostName }}.{{ .Values.ingress.domainName }}
+    {{- end }}
+      http:
+        paths:
+          - path: /promise
+            pathType: Prefix
+            backend:
+              service:
+                name: u-assist-promise
+                port:
+                  number: 3381
+{{- end }}

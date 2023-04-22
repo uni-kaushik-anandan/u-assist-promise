@@ -1,0 +1,31 @@
+kind: Module
+type: helm
+name: u-assist-promise
+
+serviceResource:
+  kind: Deployment
+  name: u-assist-promise
+
+build:
+  dependencies:
+    - name: "u-assist-promise-image"
+
+dependencies:
+   - platform-secrets
+   - redis
+   - kafka
+   - kafka-provisioning
+   - mongodb
+   - postgresql
+values:
+  image:
+    id: ${modules.u-assist-promise-image.outputs.deployment-image-id}
+  datadog:
+    env: ${var.datadog.env}
+  ingress:
+    host: ${var.host}
+    hostName: "api-${providers[var.kubernetesProvider].config.namespace.name}"
+    domainName: "${providers[var.kubernetesProvider].config.defaultHostname}"
+  java:
+    opts: ${var.java.opts}
+  useElasticCacheFromSecrets: ${var.useElasticCacheFromSecrets}

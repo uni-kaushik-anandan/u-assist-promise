@@ -1,0 +1,225 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: uassist-summary
+  labels:
+    {{- include "uassist-summary.labels" . | nindent 4 }}
+    tags.datadoghq.com/env: {{ .Values.datadog.env }}
+    tags.datadoghq.com/service: {{ .Values.datadog.service }}
+spec:
+  {{ if not .Values.disabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{ else }}
+  replicas: 0
+  {{ end }}
+  selector:
+    matchLabels:
+      {{- include "uassist-summary.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/path: '/actuator/prometheus'
+      labels:
+        {{- include "uassist-summary.selectorLabels" . | nindent 8 }}
+        tags.datadoghq.com/env: {{ .Values.datadog.env }}
+        tags.datadoghq.com/service: {{ .Values.datadog.service }}
+    spec:
+      securityContext:
+        fsGroup: 8001
+      imagePullSecrets:
+        - name: uniphore-secret
+      volumes:
+        - name: logs-volume
+          emptyDir: {}
+      containers:
+        - name: uassist-summary
+          image: "{{ .Values.image.id }}"
+          volumeMounts:
+            - mountPath: "{{ .Values.log.path }}"
+              name: logs-volume
+          env:
+            - name: DD_AGENT_HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DD_ENV
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/env']
+            - name: DD_SERVICE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['tags.datadoghq.com/service']
+            - name: DD_LOGS_INJECTION
+              value: "true"
+            - name: DD_PROFILING_ENABLED
+              value: "true"
+            - name: DD_KAFKA_LEGACY_TRACING_ENABLED
+              value: "false"
+            - name: VERSION
+              value: "{{ .Values.Version }}"
+            - name: JAVA_OPTS
+              value: "{{ .Values.java.opts }}"
+            - name: APP_LOGGING_LEVEL
+              value: "{{ .Values.log.apiLevel }}"
+            - name: ROOT_LOGGING_LEVEL
+              value: "{{ .Values.log.rootLevel }}"
+            - name: LOGS_PATH
+              value: "{{ .Values.log.path }}"
+            - name: REDIS_CLUSTER
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-credential-summary
+                  key: cluster
+            - name: REDIS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: elastic-credential-summary
+                  key: secret
+            - name: REDIS_CLUSTER_MAX_REDIRECTS
+              value: "{{ .Values.redis.maxRedirects }}"
+            - name: REDIS_CLUSTER_READ_FROM
+              value: "{{ .Values.redis.readFrom }}"
+            - name: REDIS_LETTUCE_POOL_MIN_IDLE
+              value: "{{ .Values.redis.lettuce.idleMin }}"
+            - name: REDIS_LETTUCE_POOL_MAX_IDLE
+              value: "{{ .Values.redis.lettuce.idleMax }}"
+            - name: REDIS_LETTUCE_POOL_MAX_ACTIVE
+              value: "{{ .Values.redis.lettuce.activeMax }}"
+            - name: REDIS_LETTUCE_POOL_MAX_WAIT
+              value: "{{ .Values.redis.lettuce.waitMax }}"
+            - name: REDIS_LETTUCE_SHUTDOWN_TIMEOUT
+              value: "{{ .Values.redis.lettuce.shutdownTimeout }}"
+            - name: REDIS_LETTUCE_CLUSTE_REFRESH_DYNAMIC_REFRESH_SOURCES
+              value: "{{ .Values.redis.lettuce.refreshResourceDynamic }}"
+            - name: REDIS_LETTUCE_CLUSTE_REFRESH_PERIOD
+              value: "{{ .Values.redis.lettuce.refreshPeriod }}"
+            - name: REDIS_LETTUCE_CLUSTE_REFRESH_ADAPTIVE
+              value: "{{ .Values.redis.lettuce.refreshAdaptive }}"
+            - name: REDIS_SSL
+              value: "{{ .Values.redis.ssl }}"
+            - name: REDIS_TIMEOUT
+              value: "{{ .Values.redis.timeout }}"
+            - name: REDIS_CACHE_TIME_TO_LIVE
+              value: "{{ .Values.redis.cacheTimeToLive }}"
+            - name: KAFKA_SERVERS
+              {{- if .Values.useKafkaFromSecrets }}
+              valueFrom:
+                secretKeyRef:
+                  name: kafka-auth-config
+                  key: kafka-brokers
+              {{- else }}
+              value: "{{ .Values.kafka.server }}"
+              {{- end}}
+            - name: KAFKA_CONSUMER_CONCURRENCY
+              value: "{{ .Values.kafka.consumerConcurrency }}"
+            - name: KAFKA_MAX_MESSAGE_SIZE
+              value: "{{ .Values.kafka.maxMessageSize }}"
+            - name: KAFKA_SECURITY_PROTOCOL
+              value: "{{ .Values.kafka.securityProtocol }}"
+            - name: KAFKA_KEY_STORE_TYPE
+              value: "{{ .Values.kafka.ssl.keystore.type }}"
+            - name: KAFKA_MIN_PARTITION_COUNT
+              value: "{{ .Values.kafka.minPartitionCount }}"
+            - name: KAFKA_SSL_KEY_PASSWORD
+              value: "{{ .Values.kafka.ssl.keyPassword }}"
+            - name: KAFKA_SSL_KEYSTORE_LOCATION
+              value: "{{ .Values.kafka.ssl.keystore.location }}"
+            - name: KAFKA_SSL_KEYSTORE_PASSWORD
+              value: "{{ .Values.kafka.ssl.keystore.password }}"
+            - name: KAFKA_SSL_TRUSTSTORE_LOCATION
+              value: "{{ .Values.kafka.ssl.truststore.location }}"
+            - name: KAFKA_SSL_TRUSTSTORE_PASSWORD
+              value: "{{ .Values.kafka.ssl.truststore.password }}"
+            - name: KAFKA_TRUST_STORE_TYPE
+              value: "{{ .Values.kafka.ssl.truststore.type }}"
+            - name: SUMMARY_UPDATE_TOPIC
+              value: "{{ .Values.kafka.topic.summaryUpdate }}"
+            - name: SUMMARY_REVIEWED_TOPIC
+              value: "{{ .Values.kafka.topic.summaryReviewed }}"
+            - name: CONVERSATION_EVENTS_TOPIC
+              value: "{{ .Values.kafka.topic.conversationEvents }}"
+            - name: CONSUMER_GROUP
+              value: "{{ .Values.kafka.consumerGroup }}"
+            - name: MONGO_DB
+              value: "{{ .Values.mongo.db }}"
+            - name: PASSWORD_ENCRYPTION_ENABLED
+              value: "{{ .Values.password.encryption.enabled }}"
+            - name: PASSWORD_ENCRYPTION_KEY
+              value: "{{ .Values.password.encryption.key }}"
+            - name: MONGO_CERT_FILE
+              value: "{{ .Values.mongo.certfile }}"
+            {{- if .Values.password.encryption.enabled }}
+            - name: MONGO_CLUSTER
+              value: "{{ .Values.mongo.clusterEncryptedPassword }}"
+            {{- else }}
+            - name: MONGO_CLUSTER
+              value: "{{ .Values.mongo.cluster }}"
+            {{- end}}
+            - name: MONGO_TLS_ENABLED
+              value: "{{ .Values.mongo.tls.enabled }}"
+            - name: POSTGRES_HOST
+              value: "{{ .Values.postgres.host }}"
+            - name: POSTGRES_PORT
+              value: "{{ .Values.postgres.port }}"
+            - name: POSTGRES_DATABASE
+              value: "{{ .Values.postgres.database }}"
+            - name: POSTGRES_USERNAME
+              value: "{{ .Values.postgres.username }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+            - name: POSTGRES_SHOW_SQL
+              value: "{{ .Values.postgres.showSql }}"
+            - name: POSTGRES_MAXIMUM_POOL_SIZE
+              value: "{{ .Values.postgres.maxPoolSize }}"
+            - name: POSTGRES_MAXIMUM_IDEL
+              value: "{{ .Values.postgres.maxIdle }}"
+            - name: POSTGRES_CONNECTION_TIMEOUT
+              value: "{{ .Values.postgres.connectionTimeout }}"
+            - name: POSTGRES_IDEL_TIMEOUT
+              value: "{{ .Values.postgres.idleTimeout }}"
+            - name: POSTGRES_MAXIMUM_LIFETIME
+              value: "{{ .Values.postgres.maxLifetime }}"
+            - name: POSTGRES_MIGRATE_ON_APPLICATION_START
+              value: "{{ .Values.postgres.migrateOnAppStart }}"
+            - name: OCMS_ENDPOINT
+              value: "{{ .Values.ocms.endpoint }}"
+            - name: TELEMETRY_BUCKET_SUMMARY_MILLISECONDS
+              value: "{{ .Values.telemetry.bucket.summary }}"
+            - name: HAS_OAUTH2
+              {{ if eq .Values.idp "auth0" }}
+              value: 'false'
+              {{ else }}
+              value: 'true'
+              {{ end }}
+            - name: IDP
+              value: "{{ .Values.idp }}"
+            - name: KEYCLOAK_REALM
+              value: "{{ .Values.keycloak.realm }}"
+            - name: KEYCLOAK_RESOURCE
+              value: "{{ .Values.keycloak.resource }}"
+            - name: KEYCLOAK_PROVIDER
+              value: "{{ .Values.keycloak.provider }}"
+            - name: KEYCLOAK_AUTH_URL
+              value: "{{ .Values.keycloak.authUrl }}"
+            - name: KEYCLOAK_METHOD_NAME
+              value: "{{ .Values.keycloak.method }}"
+            - name: KEYCLOAK_PRINCIPLE_ATTRIBUTE
+              {{ if eq .Values.idp "auth0" }}
+              value: "{{ .Values.auth0.user }}"
+              {{ else }}
+              value: "{{ .Values.keycloak.principalAttribute }}"
+              {{ end }}
+            - name: KEYCLOAK_RESOURCE_GATEWAY
+              value: "{{ .Values.keycloak.resourceGateway }}"
+            - name: KEYCLOAK_CLIENT_SECRET_GATEWAY
+              value: "{{ .Values.keycloak.secretGateway }}"
+          ports:
+            - name: http
+              containerPort: 3380
+              protocol: TCP
+          resources:
+            requests:
+              memory: "685Mi"
+              cpu: "100m"

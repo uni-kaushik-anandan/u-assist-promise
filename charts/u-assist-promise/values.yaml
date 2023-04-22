@@ -1,0 +1,153 @@
+image:
+  # full image ID
+  id: registry.uniphore.com/uniphore/uassist-summary:v-a8da2d888d
+version: 2.4.1.1
+  # MEMORY CONFIG
+java:
+  opts: -Xms128m -Xmx1024m
+
+# LOGGING CONFIG
+log:
+  apiLevel: WARN
+  rootLevel: WARN
+  path: /var/log/uniphore/uassist-summary/
+
+idp: auth0 # uassist helmrelease-value = '{{ .Values.idp }}'
+auth0:
+  user: sub
+
+# DATADOG CONFIG
+datadog:
+  env: "" # uassist helmrelease-value = '{{ .Values.datadog.env }}'
+  service: "uassist-summary"
+
+# LINUX SHARED LIBRARY
+ldLibPath: /lib64
+
+ingress:
+  host: "" # uassist helmrelease-value = '{{ .Values.ingress.host }}'
+  domainName: "" # uassist helmrelease-value = '{{ .Values.ingress.domainName }}'
+  hostName: "" # uassist helmrelease-value = '{{ .Values.ingress.hostName }}'
+  tls:
+    enabled: true
+  enabled: true # uassist helmrelease-value = '{{ .Values.developerApi.ingress.enabled }}'
+  wildcardCert:
+    enabled: true
+    certDev: wildcard-cert-dev
+    certCloud: wildcard-cert-cloud
+    certStaging: wildcard-cert-staging
+
+# REDIS CONFIGURATION
+redis:
+  cluster: redis-master:6379 # uassist helmrelease-value = '{{ .Values.redis.cluster }}'
+  secret: Un1ph0r3 # uassist helmrelease-value = '{{ .Values.redis.secret }}'
+  maxRedirects: 3
+  readFrom: MASTER
+  lettuce:
+    idleMin: 5
+    idleMax: 10
+    activeMax: 200
+    waitMax: 2000
+    shutdownTimeout: 0
+    refreshResourceDynamic: false
+    refreshPeriod: 5
+    refreshAdaptive: false
+  ssl: false
+  timeout: 20000
+  cacheTimeToLive: "3600000"
+
+replicaCount: 1 # uassist helmrelease-value = '{{ .Values.uassist-summary.replicaCount }}'
+autoscaling:
+  enabled: false # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.enabled }}'
+  minReplicas: 1 # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.minReplicas }}'
+  maxReplicas: 3 # uassist helmrelease-value = '{{ .Values.uassist-summary.autoscaling.maxReplicas }}'
+  #targetMemoryUtilizationPercentage: 50
+  targetCPUUtilizationPercentage: 80
+
+disabled: false # uassist helmrelease-value = '{{ .Values.disabled }}'
+
+# KAFKA CONFIGURATION
+kafka:
+  server: kafka:9092
+  consumerConcurrency: 1
+  maxMessageSize: "2097152"
+  securityProtocol: PLAINTEXT
+  minPartitionCount:
+  ssl:
+    keyPassword:
+    keystore:
+      location:
+      password:
+      type:
+    truststore:
+      location:
+      password:
+      type:
+  topic:
+    summaryUpdate: summary-update
+    summaryReviewed: summary-reviewed
+    conversationEvents: conversation-events
+  consumerGroup: summary  
+
+useKafkaFromSecrets: true
+useElasticCacheFromSecrets: true
+
+# MONGO CONFIGURATION
+mongo:
+  cluster: mongodb://root:Un1ph0r3@mongodb-sharded:27017/summary
+  clusterEncryptedPassword: mongodb://root:fz5Qt2m29nN1UxlIXTycQ5kBslI1X+L/@mongodb-sharded:27017/summary
+  db: summary
+  headerTemplate: HeaderTemplate
+  intentTemplate: IntentTemplate
+  headerSummary: HeaderSummary
+  intentSummary: IntentSummary
+  agentNotes: AgentNotes  
+  participant: Participant
+  summary: Summary
+  certfile:
+  tls:
+   enabled: false
+
+password:
+  encryption:
+    enabled: false
+    key: 
+
+# POSTGRES CONFIGURATION
+postgres:
+  host: postgresql
+  port: 5432
+  database: summarization
+  username: postgres
+  password: postgrespw
+  showSql: true
+  maxPoolSize: 10
+  maxIdle: 10
+  connectionTimeout: 200000
+  idleTimeout: 30000
+  maxLifetime: 1000
+  migrateOnAppStart: true
+  
+ocms:
+  endpoint: https://uassist-andro-dev.us.cloud.uniphoredev.com/ocms
+
+# Kong configuration
+customClaim:
+  key: "scope"
+  value: "write:uassist read:uassist"
+  restrict: false
+#telemetry configuration
+telemetry:
+  bucket:
+    summary: 5000,10000,20000,60000
+
+#keycloak configuration
+keycloak:
+  realm: uniphore
+  resource: u-assist-client
+  provider: keycloak
+  authUrl: "" # uassist helmrelease-value = 'https://uassist-auth-{{ .Values.defaultHostname }}/auth'
+  method: /protocol/openid-connect
+  principalAttribute: preferred_username
+  resourceGateway: service-client
+  secretGateway: 58e85b73-aaaa-41a9-b3c3-5e1d81d01a33

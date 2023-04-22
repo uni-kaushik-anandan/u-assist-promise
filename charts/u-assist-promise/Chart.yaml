@@ -1,0 +1,10 @@
+apiVersion: v1
+appVersion: 0.1.0
+dependencies:
+- name: uniphore_base_helm
+  repository: https://charts.uniphoredev.com
+  version: '*'
+description: Chart for u-assist-promise service
+name: u-assist-promise
+type: application
+version: 0.2.35-v8e93bf0b

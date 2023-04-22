@@ -1,0 +1,9 @@
+{{- if .Values.customClaim.restrict }}
+apiVersion: configuration.konghq.com/v1
+kind: KongPlugin
+metadata:
+  name: uassist-jwt
+plugin: jwt
+config:
+  run_on_preflight: false
+{{- end }}
