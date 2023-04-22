@@ -1,0 +1,35 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: u-assist-promise
+spec:
+  releaseName: u-assist-promise
+  chart:
+    spec:
+      chart: u-assist-promise
+      sourceRef:
+        kind: HelmRepository
+        name: uniphore-charts
+        namespace: flux-system
+      version: "0.2.35-v8e93bf0b"
+  interval: 5m
+  install:
+    createNamespace: true
+    remediation:
+      retries: 3
+  values:
+    replicaCount: 1
+    idp: auth0
+    image:
+      id: registry.uniphore.com/uniphore/u-assist-promise:v-3ea6e24df2
+    ingress:
+      enabled: true
+      host: ""
+      hostName: api
+      domainName: ${INGRESS_DOMAIN_NAME}
+      tls:
+        enabled: true
+    datadog:
+      env: ""
+    useKafkaFromSecrets: true
+    useElasticCacheFromSecrets: true
